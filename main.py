@@ -39,13 +39,22 @@ class cell:
                 return False
 
     def set_flag(self):
-        '''Sets flag is called
+        '''Sets flag if called
 
         Args:
         None
         '''
 
         self.has_flag = True
+
+    def unset_flag(self):
+        '''Removed flag if called
+
+        Args:
+        None
+        '''
+
+        self.has_flag = False       
 
     def open_cell(self):
         '''Opens cell if called
@@ -114,9 +123,14 @@ class gameSettings:
         self.mine_amount = mine_amount
 
     def found_mine(self):
-        '''If the bomb is found then the  bomb amount goes down
+        '''If a flag is placed on a bomb the bomb count goes down
         '''
         self.mine_amount -= 1
+
+    def unfound_mine(self):
+        '''If a flag is removed the bomb count goes up
+        '''
+        self.mine_amount += 1
         
     def end_game(self):
         '''Ends the game
@@ -186,48 +200,53 @@ def set_neightbours(settings, fields):
     row_amount = settings.row_amount
     col_amount = settings.col_amount
 
+    # BUG: Bombs are sometimes not calculates correctly
+
     for row in range(0,(row_amount)):
         for col in range(0,(col_amount)):
             flag_number = 0
+
+            # Trying and catching the IndexErrors here because I have to
+            # The fields will almost always be out of index on the sides
             try:
                 if (fields[row-1][col]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row+1][col]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row][col-1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row][col+1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row+1][col-1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row+1][col+1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row-1][col+1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
             try:
                 if (fields[row-1][col-1]).has_mine == True:
                     flag_number += 1
-            except:
+            except IndexError:
                 pass
 
             fields[row][col].set_neightbour(flag_number)
@@ -237,7 +256,7 @@ def set_neightbours(settings, fields):
     
 def show_fields(settings, fields):
     '''Looks where flags need to be placed
-    
+    9
     Args:
     col_amount(int): Amount of cells in colums
     row_amount(int): Amount of cells in rows
@@ -284,7 +303,7 @@ def show_all_fields(settings, fields):
         print()
 
 
-def calculate_user_action(user_col, user_row, user_action, fields):
+def calculate_user_action(user_col, user_row, user_action, fields, settings):
     '''Calculates what to do with the user action
 
     user_col(int): Colum that user chose
@@ -292,9 +311,19 @@ def calculate_user_action(user_col, user_row, user_action, fields):
     user_action(str): Action that user chose
 
     '''
+    
 
-    if user_action == 'placeFlag':
-        fields[user_col-1][user_row-1].set_flag()
+    if user_action == 'flag':
+        if fields[user_col-1][user_row-1].has_flag == False:
+            fields[user_col-1][user_row-1].set_flag()
+            if fields[user_col-1][user_row-1].has_mine == True:
+                settings.found_mine()
+        elif fields[user_col-1][user_row-1].has_flag == True:
+            fields[user_col-1][user_row-1].unset_flag()
+            if fields[user_col-1][user_row-1].has_mine == True:
+                settings.unfound_mine()
+            
+        
         return fields, settings
     elif user_action == 'open':
         if fields[user_col-1][user_row-1].has_mine == True:
@@ -305,9 +334,64 @@ def calculate_user_action(user_col, user_row, user_action, fields):
             # TODO: Make is open more neighbourign cells
         else:
             # TODO: Tell the user to actually do something
-            pass
+            print("Man stop fucking with the program, enter an actual option.")
     
     return fields, settings
+
+def program_start():
+    '''Asks user what they want to do, start game, or change settings
+
+    Args:
+    None
+
+    Returns:
+    None
+    '''
+
+    settings = gameSettings()
+    print("Starting the game can be done by typing: start")
+    print("To change the settings type settings")
+
+
+    while True:
+        user_choice = input("Please choose an option: ")
+
+        if user_choice.lower() == 'start':
+            fields, settings = int_game(settings)
+            start_game(fields, settings)
+            break # Breaking here so the game ends when they exit this loop
+        elif user_choice.lower() == 'settings':
+
+            print("mine_amount")
+            print("col_amount")
+            print("row_amount")
+                 
+            # TODO: Make the settings menu a bit more efficient than this crap
+            user_setting_choice = input("Please choose setting you want to change: ")
+            if user_setting_choice.lower() == 'mine_amount':
+                try:
+                    user_amount = int(input("Please enter the amount: "))
+                    settings.set_mine_amount(user_amount)
+                except:
+                    print("Please enter valid input")
+            elif user_setting_choice.lower() == 'col_amount':
+                try:
+                    user_amount = int(input("Please enter the amount: "))
+                    settings.set_col_amount(user_amount) 
+                except:
+                    print("Please enter valid input")                    
+            elif user_setting_choice.lower() == 'row_amount':
+                try:
+                    user_amount = int(input("Please enter the amount: "))
+                    settings.set_row_amount(user_amount)
+                except:
+                    print("Please enter valid input")
+            else:
+                print("Please select an actual setting")
+
+        else:
+            print("Please enter valid input.")
+
 
 def user_key():
     '''Gets input from keyboard
@@ -320,29 +404,35 @@ def user_key():
     user_row
     user_action
     '''
-
-    try:
-        user_col = int(input('Please select a column: '))
-    except:
-        print('You failed to select an actual column')
-
-    try:
-        user_row = int(input('Please select a row: '))
-    except:
-        print('You failed to select an actual Row')
-    
-    try:
-        user_action = input('Please select an action: ')
-    except:
-        print('You failed to select an actual action')
+    while True:
+        try:
+            user_col = int(input('Please select a column: '))
+            break
+        except:
+            print('You failed to select an actual column')
+    while True:
+        try:
+            user_row = int(input('Please select a row: '))
+            break
+        except:
+            print('You failed to select an actual Row')
+    while True:
+        try:
+            print("Actions are flag and open.")
+            user_action = input('Please select an action: ')
+            break
+        except:
+            print('You failed to select an actual action')
 
     return user_col, user_row, user_action
 
-def int_game():
+def int_game(settings):
     '''Initialises the game
-    '''
 
-    settings = gameSettings()
+    Args:
+    settings(class): Stuff full of settings
+    '''
+    
     fields = set_fields(settings)
     fields = set_mines(settings, fields)
     fields = set_neightbours(settings, fields)
@@ -351,14 +441,23 @@ def int_game():
     return fields, settings
 
 def start_game(fields, settings):
+    '''The main loop where the game starts and ends ultimately'''
+
     while settings.game_over == False:
         user_col, user_row, user_action = user_key()
-        fields, settings = calculate_user_action(user_col, user_row, user_action, fields)
+        fields, settings = calculate_user_action(user_col, user_row, user_action, fields, settings)
         show_fields(settings, fields)
-
+        if settings.mine_amount == 0:
+            print("You won! Congratz")
+            break
     print('Game over')
     show_all_fields(settings, fields)
     time.sleep(30)
 
-fields, settings = int_game()
-start_game(fields, settings)
+program_start()
+
+
+# DONE: TODO: Make it so you can actually win the game instead of it just constantly asking you stuff
+# DONE: TODO: Change setFlag to flag so you can also remove flags
+# TODO: Make a GUI so you can either right click or left click for opening and placing flags
+# TODO: Make it so first bomb cant kill you
