@@ -90,9 +90,9 @@ class gameSettings:
         Args: None
         '''
         # Default values
-        self.col_amount = 10
-        self.row_amount = 10
-        self.mine_amount = 20
+        self.col_amount = 5
+        self.row_amount = 5
+        self.mine_amount = 5
         self.game_over = False
 
     def set_col_amount(self, col_amount):
@@ -404,6 +404,7 @@ def user_key():
     user_row
     user_action
     '''
+
     while True:
         try:
             user_col = int(input('Please select a column: '))
@@ -440,6 +441,7 @@ def int_game(settings):
 
     return fields, settings
 
+
 def start_game(fields, settings):
     '''The main loop where the game starts and ends ultimately'''
 
@@ -456,8 +458,7 @@ def start_game(fields, settings):
 
 program_start()
 
-
-# DONE: TODO: Make it so you can actually win the game instead of it just constantly asking you stuff
-# DONE: TODO: Change setFlag to flag so you can also remove flags
 # TODO: Make a GUI so you can either right click or left click for opening and placing flags
 # TODO: Make it so first bomb cant kill you
+# TODO: Make it so you cant have more bombs than flags
+# TODO: Make settings a global variable so I don't have to give it all the bloody time
