@@ -156,6 +156,7 @@ def set_fields(settings):
 
     for row in range(0,(row_amount)):
         fields.append(list())
+        # TODO: Make it so we don't have to define col so it won't give a warning
         for col in range(0,(col_amount)):
             fields[row].append(cell())
 
@@ -177,6 +178,7 @@ def set_mines(settings, fields):
     col_amount = settings.col_amount
     mines_amount = settings.mine_amount
 
+    # TODO: TODO: Make it so we don't have to define mine_to_place so it won't give a warning
     for mines_to_place in range(0, mines_amount):
         mine_placed = False
         while mine_placed == False:
@@ -462,3 +464,5 @@ program_start()
 # TODO: Make it so first bomb cant kill you
 # TODO: Make it so you cant have more bombs than flags
 # TODO: Make settings a global variable so I don't have to give it all the bloody time
+
+
